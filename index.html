@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        input, textarea, button, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button.secondary {
+            background: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        
+        button.danger {
+            background: #dc3545;
+        }
+        
+        button.danger:hover {
+            background: #c82333;
+        }
+        
+        .item-list {
+            list-style: none;
+        }
+        
+        .item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .item-info {
+            flex-grow: 1;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .item-actions button {
+            width: auto;
+            padding: 8px 16px;
+            margin: 0;
+        }
+        
+        .sets-container {
+            margin-top: 15px;
+        }
+        
+        .set-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: end;
+        }
+        
+        .set-row button {
+            width: auto;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .user-info {
+            text-align: right;
+            color: white;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="user-info hidden" id="userInfo">
+            <span id="userEmail"></span> | <a href="#" onclick="logout()" style="color: white;">Logout</a>
+        </div>
+
+        <!-- Auth Section -->
+        <div id="authSection" class="card">
+            <h1>Fitness Tracker</h1>
+            <div id="authMessage"></div>
+            
+            <div id="loginForm">
+                <h2>Login</h2>
+                <input type="email" id="loginEmail" placeholder="Email">
+                <input type="password" id="loginPassword" placeholder="Password">
+                <button onclick="login()">Login</button>
+                <button class="secondary" onclick="showRegister()">Create Account</button>
+            </div>
+            
+            <div id="registerForm" class="hidden">
+                <h2>Register</h2>
+                <input type="email" id="registerEmail" placeholder="Email">
+                <input type="password" id="registerPassword" placeholder="Password (min 6 characters)">
+                <button onclick="register()">Register</button>
+                <button class="secondary" onclick="showLogin()">Back to Login</button>
+            </div>
+        </div>
+
+        <!-- Main App Section -->
+        <div id="appSection" class="hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('workouts')">Workouts</div>
+                <div class="tab" onclick="showTab('sessions')">Sessions</div>
+                <div class="tab" onclick="showTab('weight')">Weight Tracking</div>
+            </div>
+
+            <!-- Workouts Tab -->
+            <div id="workoutsTab" class="card">
+                <h2>My Workouts</h2>
+                <div id="workoutMessage"></div>
+                
+                <div>
+                    <input type="text" id="workoutName" placeholder="Workout name (e.g., Bench Press)">
+                    <textarea id="workoutDescription" placeholder="Description (optional)" rows="3"></textarea>
+                    <button onclick="createWorkout()">Add Workout</button>
+                </div>
+                
+                <h3 style="margin-top: 20px;">Workout List</h3>
+                <ul id="workoutList" class="item-list"></ul>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div id="sessionsTab" class="card hidden">
+                <h2>Workout Sessions</h2>
+                <div id="sessionMessage"></div>
+                
+                <div>
+                    <select id="sessionWorkout">
+                        <option value="">Select a workout</option>
+                    </select>
+                    <input type="date" id="sessionDate" value="">
+                    <textarea id="sessionNotes" placeholder="Session notes (optional)" rows="2"></textarea>
+                    
+                    <div class="sets-container">
+                        <h3>Sets</h3>
+                        <div id="setsContainer"></div>
+                        <button class="secondary" onclick="addSetRow()">Add Set</button>
+                    </div>
+                    
+                    <button onclick="createSession()">Save Session</button>
+                </div>
+                
+                <h3 style="margin-top: 20px;">Session History</h3>
+                <ul id="sessionList" class="item-list"></ul>
+            </div>
+
+            <!-- Weight Tab -->
+            <div id="weightTab" class="card hidden">
+                <h2>Weight Tracking</h2>
+                <div id="weightMessage"></div>
+                
+                <div>
+                    <input type="number" id="weightValue" placeholder="Weight (lbs or kg)" step="0.1">
+                    <input type="date" id="weightDate" value="">
+                    <textarea id="weightNotes" placeholder="Notes (optional)" rows="2"></textarea>
+                    <button onclick="addWeight()">Add Weight Entry</button>
+                </div>
+                
+                <h3 style="margin-top: 20px;">Weight History</h3>
+                <ul id="weightList" class="item-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'api';
+        let authToken = null;
+        let currentUser = null;
+        let setCounter = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sessionDate').value = today;
+            document.getElementById('weightDate').value = today;
+            
+            const token = getCookie('fitness_token');
+            if (token) {
+                authToken = token;
+                verifyToken();
+            }
+        });
+
+        // Cookie functions
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+        }
+
+        // API functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (authToken) {
+                options.headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            if (data && method !== 'GET') {
+                options.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(`${API_BASE}/${endpoint}`, options);
+            return response.json();
+        }
+
+        // Auth functions
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            const result = await apiCall('auth.php', 'POST', { action: 'register', email, password });
+            
+            if (result.error) {
+                showMessage('authMessage', result.error, 'error');
+            } else {
+                authToken = result.token;
+                currentUser = result.user;
+                setCookie('fitness_token', authToken, 7);
+                showApp();
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const result = await apiCall('auth.php', 'POST', { action: 'login', email, password });
+            
+            if (result.error) {
+                showMessage('authMessage', result.error, 'error');
+            } else {
+                authToken = result.token;
+                currentUser = result.user;
+                setCookie('fitness_token', authToken, 7);
+                showApp();
+            }
+        }
+
+        async function logout() {
+            await apiCall('auth.php', 'POST', { action: 'logout' });
+            authToken = null;
+            currentUser = null;
+            deleteCookie('fitness_token');
+            location.reload();
+        }
+
+        async function verifyToken() {
+            const result = await apiCall('auth.php', 'GET');
+            if (result.valid) {
+                currentUser = result.user;
+                showApp();
+            } else {
+                deleteCookie('fitness_token');
+                authToken = null;
+            }
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = currentUser.email;
+            loadWorkouts();
+            loadSessions();
+            loadWeights();
+        }
+
+        // Tab navigation
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('[id$="Tab"]').forEach(t => t.classList.add('hidden'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.remove('hidden');
+        }
+
+        // Workout functions
+        async function loadWorkouts() {
+            const result = await apiCall('workouts.php');
+            const list = document.getElementById('workoutList');
+            const select = document.getElementById('sessionWorkout');
+            
+            list.innerHTML = '';
+            select.innerHTML = '<option value="">Select a workout</option>';
+            
+            result.workouts.forEach(workout => {
+                // Add to list
+                const li = document.createElement('li');
+                li.className = 'item';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <strong>${workout.name}</strong>
+                        ${workout.description ? `<br><small>${workout.description}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="danger" onclick="deleteWorkout(${workout.id})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+                
+                // Add to select
+                const option = document.createElement('option');
+                option.value = workout.id;
+                option.textContent = workout.name;
+                select.appendChild(option);
+            });
+        }
+
+        async function createWorkout() {
+            const name = document.getElementById('workoutName').value;
+            const description = document.getElementById('workoutDescription').value;
+            
+            const result = await apiCall('workouts.php', 'POST', { name, description });
+            
+            if (result.error) {
+                showMessage('workoutMessage', result.error, 'error');
+            } else {
+                showMessage('workoutMessage', result.message, 'success');
+                document.getElementById('workoutName').value = '';
+                document.getElementById('workoutDescription').value = '';
+                loadWorkouts();
+            }
+        }
+
+        async function deleteWorkout(id) {
+            if (!confirm('Delete this workout and all its sessions?')) return;
+            
+            const result = await apiCall('workouts.php', 'DELETE', { id });
+            showMessage('workoutMessage', result.message, result.error ? 'error' : 'success');
+            loadWorkouts();
+            loadSessions();
+        }
+
+        // Session functions
+        function addSetRow() {
+            setCounter++;
+            const container = document.getElementById('setsContainer');
+            const div = document.createElement('div');
+            div.className = 'set-row';
+            div.id = `set-${setCounter}`;
+            div.innerHTML = `
+                <input type="number" placeholder="Set #" value="${setCounter}" class="set-number">
+                <input type="number" placeholder="Reps" class="set-reps" min="1">
+                <input type="number" placeholder="Weight" step="0.5" class="set-weight" min="0">
+                <button class="danger" onclick="removeSetRow(${setCounter})">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeSetRow(id) {
+            document.getElementById(`set-${id}`).remove();
+        }
+
+        async function createSession() {
+            const workoutId = document.getElementById('sessionWorkout').value;
+            const sessionDate = document.getElementById('sessionDate').value;
+            const notes = document.getElementById('sessionNotes').value;
+            
+            if (!workoutId) {
+                showMessage('sessionMessage', 'Please select a workout', 'error');
+                return;
+            }
+            
+            const sets = [];
+            document.querySelectorAll('.set-row').forEach(row => {
+                const setNumber = row.querySelector('.set-number').value;
+                const reps = row.querySelector('.set-reps').value;
+                const weight = row.querySelector('.set-weight').value;
+                if (reps && weight) {
+                    sets.push({ set_number: setNumber, reps, weight });
+                }
+            });
+            
+            const result = await apiCall('sessions.php', 'POST', { 
+                workout_id: workoutId, 
+                session_date: sessionDate, 
+                notes, 
+                sets 
+            });
+            
+            if (result.error) {
+                showMessage('sessionMessage', result.error, 'error');
+            } else {
+                showMessage('sessionMessage', result.message, 'success');
+                document.getElementById('sessionNotes').value = '';
+                document.getElementById('setsContainer').innerHTML = '';
+                setCounter = 0;
+                loadSessions();
+            }
+        }
+
+        async function loadSessions() {
+            const result = await apiCall('sessions.php');
+            const list = document.getElementById('sessionList');
+            
+            list.innerHTML = '';
+            
+            result.sessions.forEach(session => {
+                const li = document.createElement('li');
+                li.className = 'item';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <strong>${session.workout_name}</strong> - ${session.session_date}
+                        <br><small>${session.total_sets} sets, ${session.total_reps} total reps</small>
+                        ${session.notes ? `<br><small>${session.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="danger" onclick="deleteSession(${session.id})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function deleteSession(id) {
+            if (!confirm('Delete this session?')) return;
+            
+            const result = await apiCall('sessions.php', 'DELETE', { id });
+            showMessage('sessionMessage', result.message, result.error ? 'error' : 'success');
+            loadSessions();
+        }
+
+        // Weight functions
+        async function addWeight() {
+            const weight = document.getElementById('weightValue').value;
+            const weightDate = document.getElementById('weightDate').value;
+            const notes = document.getElementById('weightNotes').value;
+            
+            const result = await apiCall('weight.php', 'POST', { 
+                weight, 
+                weight_date: weightDate, 
+                notes 
+            });
+            
+            if (result.error) {
+                showMessage('weightMessage', result.error, 'error');
+            } else {
+                showMessage('weightMessage', result.message, 'success');
+                document.getElementById('weightValue').value = '';
+                document.getElementById('weightNotes').value = '';
+                loadWeights();
+            }
+        }
+
+        async function loadWeights() {
+            const result = await apiCall('weight.php');
+            const list = document.getElementById('weightList');
+            
+            list.innerHTML = '';
+            
+            result.weights.forEach(weight => {
+                const li = document.createElement('li');
+                li.className = 'item';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <strong>${weight.weight} lbs/kg</strong> - ${weight.weight_date}
+                        ${weight.notes ? `<br><small>${weight.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="danger" onclick="deleteWeight(${weight.id})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function deleteWeight(id) {
+            if (!confirm('Delete this weight entry?')) return;
+            
+            const result = await apiCall('weight.php', 'DELETE', { id });
+            showMessage('weightMessage', result.message, result.error ? 'error' : 'success');
+            loadWeights();
+        }
+
+        // Utility functions
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.className = type;
+            el.textContent = message;
+            setTimeout(() => el.textContent = '', 5000);
+        }
+    </script>
+</body>
+</html>
