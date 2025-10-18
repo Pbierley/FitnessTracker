@@ -7,6 +7,7 @@ setJSONHeaders();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $data = json_decode(file_get_contents('php://input'), true);
+    $conn = getDBConnection();
 
 // Register new user
 if ($method === 'POST' && isset($data['action']) && $data['action'] === 'register') {
@@ -25,6 +26,7 @@ if ($method === 'POST' && isset($data['action']) && $data['action'] === 'registe
         sendResponse(['error' => 'Password must be at least 6 characters'], 400);
     }
     
+    echo "Starting registration process for email";
     $conn = getDBConnection();
     
     // Check if email already exists

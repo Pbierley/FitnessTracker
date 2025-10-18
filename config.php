@@ -1,13 +1,14 @@
 <?php
 // config.php
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'your_username');
-define('DB_PASS', 'your_password');
+define('DB_HOST', '127.0.0.1');
+define('DB_PORT', '3306');
+define('DB_USER', 'root');
+define('DB_PASS', '123456');
 define('DB_NAME', 'fitness_tracker');
 
 // JWT Secret Key (change this to a random string)
-define('JWT_SECRET', 'your-secret-key-change-this-to-random-string');
+define('JWT_SECRET', 'ase_230');
 
 // Token expiration (7 days in seconds)
 define('TOKEN_EXPIRATION', 60 * 60 * 24 * 7);
@@ -16,7 +17,7 @@ define('TOKEN_EXPIRATION', 60 * 60 * 24 * 7);
 function getDBConnection() {
     try {
         $conn = new PDO(
-            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+            "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4",
             DB_USER,
             DB_PASS,
             [
@@ -26,9 +27,12 @@ function getDBConnection() {
             ]
         );
         return $conn;
-    } catch(PDOException $e) {
+    } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['error' => 'Database connection failed']);
+        echo json_encode([
+            'error' => 'Database connection failed',
+            'detail' => $e->getMessage() // optional — remove this in production
+        ]);
         exit();
     }
 }
