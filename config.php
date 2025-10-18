@@ -17,7 +17,7 @@ define('TOKEN_EXPIRATION', 60 * 60 * 24 * 7);
 function getDBConnection() {
     try {
         $conn = new PDO(
-            "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
             DB_USER,
             DB_PASS,
             [
@@ -27,12 +27,9 @@ function getDBConnection() {
             ]
         );
         return $conn;
-    } catch (PDOException $e) {
+    } catch(PDOException $e) {
         http_response_code(500);
-        echo json_encode([
-            'error' => 'Database connection failed',
-            'detail' => $e->getMessage() // optional — remove this in production
-        ]);
+        echo json_encode(['error' => 'Database connection failed']);
         exit();
     }
 }

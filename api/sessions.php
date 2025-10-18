@@ -11,10 +11,11 @@ if (!$user) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents('php://input'), true);
 $conn = getDBConnection();
 
-// GET - List sessions or get single session
+// GET /api/sessions - List all sessions
+// GET /api/sessions?id=1 - Get single session with sets
+// GET /api/sessions?workout_id=1 - Filter by workout
 if ($method === 'GET') {
     $sessionId = $_GET['id'] ?? null;
     $workoutId = $_GET['workout_id'] ?? null;
@@ -76,8 +77,9 @@ if ($method === 'GET') {
     }
 }
 
-// POST - Create new session
+// POST /api/sessions - Create new session
 if ($method === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $workoutId = $data['workout_id'] ?? null;
     $sessionDate = $data['session_date'] ?? date('Y-m-d');
     $notes = $data['notes'] ?? '';
@@ -138,8 +140,9 @@ if ($method === 'POST') {
     }
 }
 
-// PUT - Update session
+// PUT /api/sessions - Update session
 if ($method === 'PUT') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $sessionId = $data['id'] ?? null;
     $sessionDate = $data['session_date'] ?? null;
     $notes = $data['notes'] ?? '';
@@ -208,9 +211,9 @@ if ($method === 'PUT') {
     }
 }
 
-// DELETE - Delete session
+// DELETE /api/sessions?id=1 - Delete session
 if ($method === 'DELETE') {
-    $sessionId = $data['id'] ?? $_GET['id'] ?? null;
+    $sessionId = $_GET['id'] ?? null;
     
     if (!$sessionId) {
         sendResponse(['error' => 'Session ID is required'], 400);
