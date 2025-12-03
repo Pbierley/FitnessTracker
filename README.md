@@ -1,343 +1,189 @@
-<<<<<<< HEAD
-# Fitness Tracker - PHP API & SQL Database
+# Fitness Tracker
 
-A complete fitness tracking web application with PHP REST APIs and MySQL database.
+A fitness tracking web application built with Laravel and SQLite.
 
 ## Features
 
-- **User Authentication**
-  - Register with email/password
-  - Login with JWT-style token authentication
-  - Secure password hashing (bcrypt)
-  - Cookie-based session management
+- **User Authentication** - Register, login, and secure token-based auth
+- **Workout Management** - Create and manage workout types
+- **Session Tracking** - Log workout sessions with sets, reps, and weights
+- **Weight Tracking** - Track body weight over time
 
-- **Workout Management**
-  - Create workouts (e.g., Bench Press, Squats)
-  - View all workouts
-  - Delete workouts
+## Quick Start
 
-- **Workout Sessions**
-  - Create workout sessions with date tracking
-  - Add multiple sets with reps and weights
-  - Edit existing sessions
-  - Delete sessions
-  - View session history
+### Local Development
 
-- **Weight Tracking**
-  - Add body weight entries by date
-  - Edit weight entries
-  - Delete weight entries
-  - Track weight over time
+```bash
+cd fitness-tracker-laravel
+bash run.sh
+```
+
+Access at: **http://localhost:8000**
+
+### Docker
+
+```bash
+cd fitness-tracker-laravel
+docker compose up --build
+```
+
+Access at: **http://localhost:8000**
 
 ## Project Structure
 
 ```
-fitness-tracker/
-├── index.html              # Frontend application
-├── config.php              # Database configuration
-├── api/
-│   ├── auth.php           # Authentication endpoints
-│   ├── workouts.php       # Workout management
-│   ├── sessions.php       # Session tracking
-│   └── weight.php         # Weight tracking
-└── README.md
+fitness-tracker-laravel/
+├── app/
+│   ├── Http/Controllers/Api/    # API Controllers
+│   └── Models/                  # Eloquent Models
+├── database/
+│   ├── migrations/              # Database migrations
+│   └── database.sqlite          # SQLite database
+├── public/
+│   └── index.html               # Frontend application
+├── routes/
+│   └── api.php                  # API routes
+├── run.sh                       # Local development script
+├── setup.sh                     # Docker setup script
+├── Dockerfile
+└── docker-compose.yml
 ```
 
-## Installation
+## API Endpoints
 
-### 1. Database Setup
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/verify` | Verify token |
+| GET | `/api/workouts` | List workouts |
+| POST | `/api/workouts` | Create workout |
+| DELETE | `/api/workouts/{id}` | Delete workout |
+| GET | `/api/sessions` | List sessions |
+| POST | `/api/sessions` | Create session |
+| DELETE | `/api/sessions/{id}` | Delete session |
+| GET | `/api/weight` | List weight entries |
+| POST | `/api/weight` | Add weight entry |
+| DELETE | `/api/weight/{id}` | Delete weight entry |
+
+## Documentation Site (Hugo)
+
+This project uses Hugo for documentation.
+
+### Setup Hugo
 
 ```bash
-# Import the database schema
-mysql -u your_username -p < database_schema.sql
+# Install Hugo (macOS)
+brew install hugo
+
+# Install Hugo (Windows)
+choco install hugo-extended
+
+# Install Hugo (Linux)
+sudo apt install hugo
 ```
 
-Or run the SQL directly:
-- Create the `fitness_tracker` database
-- Run all CREATE TABLE statements from the schema file
-
-### 2. Configuration
-
-Edit `config.php`:
-
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'your_username');
-define('DB_PASS', 'your_password');
-define('DB_NAME', 'fitness_tracker');
-define('JWT_SECRET', 'your-random-secret-key');
-```
-
-**Important:** Change `JWT_SECRET` to a random string for security!
-
-### 3. Web Server Setup
-
-#### Option A: Apache
-Place files in your web root directory (e.g., `/var/www/html/fitness-tracker/`)
-
-Ensure `.htaccess` exists in the `api` directory:
-```apache
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ $1.php [L]
-```
-
-#### Option B: PHP Built-in Server (Development Only)
-```bash
-php -S localhost:8000
-```
-
-Access at: `http://localhost:8000`
-
-### 4. Test the Installation
-
-1. Open `index.html` in your browser
-2. Register a new account
-3. Create a workout
-4. Add a session
-5. Track your weight
-
-## API Documentation
-
-### Authentication
-
-#### Register
-```
-POST /api/auth.php
-Body: {"action": "register", "email": "user@example.com", "password": "password123"}
-Response: {"token": "...", "user": {...}}
-```
-
-#### Login
-```
-POST /api/auth.php
-Body: {"action": "login", "email": "user@example.com", "password": "password123"}
-Response: {"token": "...", "user": {...}}
-```
-
-#### Verify Token
-```
-GET /api/auth.php
-Headers: Authorization: Bearer {token}
-Response: {"valid": true, "user": {...}}
-```
-
-### Workouts
-
-#### List Workouts
-```
-GET /api/workouts.php
-Headers: Authorization: Bearer {token}
-Response: {"workouts": [...]}
-```
-
-#### Create Workout
-```
-POST /api/workouts.php
-Headers: Authorization: Bearer {token}
-Body: {"name": "Bench Press", "description": "Chest exercise"}
-Response: {"message": "...", "workout": {...}}
-```
-
-#### Delete Workout
-```
-DELETE /api/workouts.php
-Headers: Authorization: Bearer {token}
-Body: {"id": 1}
-Response: {"message": "Workout deleted successfully"}
-```
-
-### Sessions
-
-#### List Sessions
-```
-GET /api/sessions.php
-GET /api/sessions.php?workout_id=1  (filter by workout)
-Headers: Authorization: Bearer {token}
-Response: {"sessions": [...]}
-```
-
-#### Create Session
-```
-POST /api/sessions.php
-Headers: Authorization: Bearer {token}
-Body: {
-  "workout_id": 1,
-  "session_date": "2025-10-14",
-  "notes": "Good workout",
-  "sets": [
-    {"set_number": 1, "reps": 10, "weight": 135},
-    {"set_number": 2, "reps": 8, "weight": 155}
-  ]
-}
-Response: {"message": "...", "session": {...}}
-```
-
-#### Update Session
-```
-PUT /api/sessions.php
-Headers: Authorization: Bearer {token}
-Body: {"id": 1, "session_date": "2025-10-15", "notes": "Updated", "sets": [...]}
-Response: {"message": "Session updated successfully"}
-```
-
-#### Delete Session
-```
-DELETE /api/sessions.php
-Headers: Authorization: Bearer {token}
-Body: {"id": 1}
-Response: {"message": "Session deleted successfully"}
-```
-
-### Weight Tracking
-
-#### List Weight Entries
-```
-GET /api/weight.php
-GET /api/weight.php?start_date=2025-10-01&end_date=2025-10-31
-Headers: Authorization: Bearer {token}
-Response: {"weights": [...]}
-```
-
-#### Add Weight
-```
-POST /api/weight.php
-Headers: Authorization: Bearer {token}
-Body: {"weight": 185.5, "weight_date": "2025-10-14", "notes": "Morning weight"}
-Response: {"message": "...", "weight": {...}}
-```
-
-#### Update Weight
-```
-PUT /api/weight.php
-Headers: Authorization: Bearer {token}
-Body: {"id": 1, "weight": 184.0, "notes": "Updated"}
-Response: {"message": "Weight entry updated successfully"}
-```
-
-#### Delete Weight
-```
-DELETE /api/weight.php
-Headers: Authorization: Bearer {token}
-Body: {"id": 1}
-Response: {"message": "Weight entry deleted successfully"}
-```
-
-## Security Features
-
-- **Password Hashing:** Uses bcrypt with PHP's `password_hash()`
-- **SQL Injection Protection:** Prepared statements with PDO
-- **Token Authentication:** Secure token-based auth with expiration
-- **CORS Headers:** Configurable cross-origin support
-- **Input Validation:** Server-side validation for all inputs
-=======
-# Fitness Tracker - PHP API & SQL Database
-
-A complete fitness tracking web application with PHP REST APIs and MySQL database.
-
-## Features
-
-- **User Authentication**
-  - Register with email/password
-  - Login with JWT-style token authentication
-  - Secure password hashing (bcrypt)
-  - Cookie-based session management
-
-- **Workout Management**
-  - Create workouts (e.g., Bench Press, Squats)
-  - View all workouts
-  - Delete workouts
-
-- **Workout Sessions**
-  - Create workout sessions with date tracking
-  - Add multiple sets with reps and weights
-  - Edit existing sessions
-  - Delete sessions
-  - View session history
-
-- **Weight Tracking**
-  - Add body weight entries by date
-  - Edit weight entries
-  - Delete weight entries
-  - Track weight over time
-
-## Project Structure
-
-```
-fitness-tracker/
-├── index.html              # Frontend application
-├── config.php              # Database configuration
-├── api/
-│   ├── auth.php           # Authentication endpoints
-│   ├── workouts.php       # Workout management
-│   ├── sessions.php       # Session tracking
-│   └── weight.php         # Weight tracking
-└── README.md
-```
-
-## Installation
-
-### 1. Database Setup
+### Create Documentation
 
 ```bash
-# Import the database schema
-mysql -u your_username -p < database_schema.sql
+# Initialize Hugo site in docs folder
+hugo new site docs
+cd docs
+
+# Add a theme
+git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke themes/ananke
+echo "theme = 'ananke'" >> hugo.toml
+
+# Create content
+hugo new content posts/getting-started.md
+
+# Run development server
+hugo server -D
 ```
 
-Or run the SQL directly:
-- Create the `fitness_tracker` database
-- Run all CREATE TABLE statements from the schema file
+### Build for GitHub Pages
 
-### 2. Configuration
-
-Edit `config.php`:
-
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'your_username');
-define('DB_PASS', 'your_password');
-define('DB_NAME', 'fitness_tracker');
-define('JWT_SECRET', 'your-random-secret-key');
-```
-
-**Important:** Change `JWT_SECRET` to a random string for security!
-
-### 3. Web Server Setup
-
-#### Option A: Apache
-Place files in your web root directory (e.g., `/var/www/html/fitness-tracker/`)
-
-Ensure `.htaccess` exists in the `api` directory:
-```apache
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ $1.php [L]
-```
-
-#### Option B: PHP Built-in Server (Development Only)
 ```bash
-php -S localhost:8000
+cd docs
+hugo --minify
 ```
 
-Access at: `http://localhost:8000`
+The built site will be in `docs/public/`.
 
-### 4. Test the Installation
+### GitHub Pages Deployment
 
-1. Open `index.html` in your browser
-2. Register a new account
-3. Create a workout
-4. Add a session
-5. Track your weight
+Add `.github/workflows/hugo.yml`:
 
+```yaml
+name: Deploy Hugo site to Pages
 
-## Security Features
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
-- **Password Hashing:** Uses bcrypt with PHP's `password_hash()`
-- **SQL Injection Protection:** Prepared statements with PDO
-- **Token Authentication:** Secure token-based auth with expiration
-- **CORS Headers:** Configurable cross-origin support
-- **Input Validation:** Server-side validation for all inputs
->>>>>>> 89cef91de2f8582afaaa649b99bf508c845c890a
-- **Authorization:** User-specific dat
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.128.0
+    steps:
+      - name: Install Hugo CLI
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Build with Hugo
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+        run: |
+          cd docs
+          hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+## Tech Stack
+
+- **Backend**: Laravel 12, PHP 8.2
+- **Database**: SQLite
+- **Frontend**: Vanilla JavaScript
+- **Containerization**: Docker
+- **Documentation**: Hugo
+
+## License
+
+MIT
