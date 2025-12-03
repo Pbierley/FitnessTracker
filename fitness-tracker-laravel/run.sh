@@ -1,86 +1,54 @@
 #!/bin/bash
-set -e
+# Local development script - run this to start the app locally
 
 echo "========================================="
-echo "  Fitness Tracker - Starting Application"
+echo "  Fitness Tracker - Local Development"
 echo "========================================="
 
-# Create .env if it doesn't exist
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
+echo "Working directory: $SCRIPT_DIR"
+echo ""
+
+# Check if .env exists
 if [ ! -f .env ]; then
-    echo "[1/6] Creating .env file..."
+    echo "[Setup] Creating .env from .env.example..."
     if [ -f .env.example ]; then
         cp .env.example .env
     else
-        cat > .env << EOF
-APP_NAME=FitnessTracker
-APP_ENV=production
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-DB_CONNECTION=sqlite
-DB_DATABASE=/var/www/html/database/database.sqlite
-CACHE_STORE=file
-SESSION_DRIVER=file
-EOF
+        echo "ERROR: No .env.example found!"
+        exit 1
     fi
-else
-    echo "[1/6] .env file exists, skipping..."
 fi
 
-# Ensure cache and session drivers are set to file
-echo "[2/6] Configuring cache and session drivers..."
-if ! grep -q "^CACHE_STORE=" .env; then
-    echo "CACHE_STORE=file" >> .env
-fi
-if ! grep -q "^SESSION_DRIVER=" .env; then
-    echo "SESSION_DRIVER=file" >> .env
+# Check if vendor directory exists
+if [ ! -d "vendor" ]; then
+    echo "[Setup] Installing dependencies..."
+    composer install
 fi
 
-# Generate app key if not set
-echo "[3/6] Checking application key..."
-if ! grep -q "^APP_KEY=base64:" .env; then
-    php artisan key:generate --force
-    echo "       Application key generated!"
-else
-    echo "       Application key exists, skipping..."
+# Generate key if needed
+if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
+    echo "[Setup] Generating application key..."
+    php artisan key:generate
 fi
-
-# Ensure database directory and file exist
-echo "[4/6] Setting up database..."
-mkdir -p /var/www/html/database
-touch /var/www/html/database/database.sqlite
-chown -R www-data:www-data /var/www/html/database 2>/dev/null || true
-chmod 664 /var/www/html/database/database.sqlite 2>/dev/null || true
-
-# Ensure storage directories exist and are writable
-echo "[5/6] Setting up storage directories..."
-mkdir -p /var/www/html/storage/logs
-mkdir -p /var/www/html/storage/framework/cache
-mkdir -p /var/www/html/storage/framework/sessions
-mkdir -p /var/www/html/storage/framework/views
-mkdir -p /var/www/html/bootstrap/cache
-chown -R www-data:www-data /var/www/html/storage 2>/dev/null || true
-chown -R www-data:www-data /var/www/html/bootstrap/cache 2>/dev/null || true
-chmod -R 775 /var/www/html/storage 2>/dev/null || true
-chmod -R 775 /var/www/html/bootstrap/cache 2>/dev/null || true
 
 # Run migrations
-echo "[6/6] Running database migrations..."
-php artisan migrate --force 2>/dev/null && echo "       Migrations completed!" || echo "       Migrations skipped (already applied)"
+echo "[Setup] Running migrations..."
+php artisan migrate --force 2>&1 | grep -E "(Migrating|Migrated|Nothing|INFO)" || true
 
 # Clear caches
-echo ""
-echo "Clearing caches..."
+echo "[Setup] Clearing caches..."
 php artisan config:clear 2>/dev/null || true
 php artisan view:clear 2>/dev/null || true
-php artisan route:clear 2>/dev/null || true
 
 echo ""
 echo "========================================="
-echo "  Application Ready!"
-echo "  Starting PHP-FPM..."
+echo "  Starting server at http://127.0.0.1:8000"
+echo "  Press Ctrl+C to stop"
 echo "========================================="
 echo ""
 
-# Execute the main process (php-fpm)
-exec "$@"
-
+php artisan serve

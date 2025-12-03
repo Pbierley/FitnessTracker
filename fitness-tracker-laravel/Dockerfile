@@ -55,11 +55,11 @@ RUN mkdir -p database && touch database/database.sqlite \
     && chown -R www-data:www-data database
 
 # Copy and set up startup script
-COPY run.sh /usr/local/bin/run.sh
-RUN chmod +x /usr/local/bin/run.sh
+COPY setup.sh /usr/local/bin/setup.sh
+RUN chmod +x /usr/local/bin/setup.sh
 
 EXPOSE 9000
 
-ENTRYPOINT ["/usr/local/bin/run.sh"]
+ENTRYPOINT ["/usr/local/bin/setup.sh"]
 CMD ["php-fpm"]
 
