@@ -32,8 +32,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
           fetch-depth: 0
+          
+      - name: Initialize theme submodule
+        run: |
+          cd docs
+          git submodule update --init --recursive
+          if [ ! -d "themes/ananke/layouts" ]; then
+            rm -rf themes/ananke
+            git clone https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
+          fi
           
       - name: Setup Pages
         id: pages
