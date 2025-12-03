@@ -24,14 +24,14 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-// Protected auth routes
-Route::middleware('custom.auth')->prefix('auth')->group(function () {
+// Protected auth routes (using Sanctum)
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/verify', [AuthController::class, 'verify']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-// Protected API routes
-Route::middleware('custom.auth')->group(function () {
+// Protected API routes (using Sanctum)
+Route::middleware('auth:sanctum')->group(function () {
     
     // Workout routes
     Route::prefix('workouts')->group(function () {
@@ -60,4 +60,3 @@ Route::middleware('custom.auth')->group(function () {
         Route::delete('/{id}', [WeightController::class, 'destroy']);
     });
 });
-

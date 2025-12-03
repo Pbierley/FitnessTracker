@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\AuthToken;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -28,11 +26,12 @@ class AuthController extends Controller
             'password_hash' => Hash::make($validated['password']),
         ]);
 
-        $token = $this->generateToken($user);
+        // Create Sanctum token
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
-            'token' => $token->token,
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
@@ -58,11 +57,12 @@ class AuthController extends Controller
             ])->status(401);
         }
 
-        $token = $this->generateToken($user);
+        // Create Sanctum token
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'token' => $token->token,
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
@@ -75,11 +75,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $token = $request->bearerToken();
-        
-        if ($token) {
-            AuthToken::where('token', $token)->delete();
-        }
+        // Revoke the current token
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'Logged out successfully',
@@ -101,17 +98,4 @@ class AuthController extends Controller
             ],
         ]);
     }
-
-    /**
-     * Generate authentication token for user
-     */
-    private function generateToken(User $user): AuthToken
-    {
-        return AuthToken::create([
-            'user_id' => $user->id,
-            'token' => Str::random(64),
-            'expires_at' => now()->addDays(7),
-        ]);
-    }
 }
-

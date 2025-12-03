@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
 
     protected $fillable = [
         'email',
@@ -18,11 +19,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password_hash',
     ];
-
-    public function authTokens(): HasMany
-    {
-        return $this->hasMany(AuthToken::class);
-    }
 
     public function workouts(): HasMany
     {
