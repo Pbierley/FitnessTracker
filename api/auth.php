@@ -72,6 +72,7 @@ if ($method === 'POST' && isset($data['action']) && $data['action'] === 'login')
     }
     
     $conn = getDBConnection();
+    console.log("conn: $conn");
     $stmt = $conn->prepare("SELECT id, email, password_hash FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();

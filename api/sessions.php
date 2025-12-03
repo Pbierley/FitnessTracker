@@ -72,6 +72,19 @@ if ($method === 'GET') {
         $stmt->execute($params);
         $sessions = $stmt->fetchAll();
         
+        // Get sets for each session
+        $setsStmt = $conn->prepare("
+            SELECT set_number, reps, weight
+            FROM session_sets
+            WHERE session_id = ?
+            ORDER BY set_number ASC
+        ");
+        
+        foreach ($sessions as &$session) {
+            $setsStmt->execute([$session['id']]);
+            $session['sets'] = $setsStmt->fetchAll();
+        }
+        
         sendResponse(['sessions' => $sessions]);
     }
 }

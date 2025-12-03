@@ -163,6 +163,24 @@
             color: white;
             margin-bottom: 20px;
         }
+        
+        .sets-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .set-detail {
+            padding: 4px 0;
+            font-size: 13px;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .set-detail:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -260,7 +278,7 @@
     </div>
 
     <script>
-        const API_BASE = 'api';
+        const API_BASE = '/api';
         let authToken = null;
         let currentUser = null;
         let setCounter = 0;
@@ -326,7 +344,7 @@
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             
-            const result = await apiCall('auth.php', 'POST', { action: 'register', email, password });
+            const result = await apiCall('auth/register', 'POST', { email, password });
             
             if (result.error) {
                 showMessage('authMessage', result.error, 'error');
@@ -342,7 +360,7 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            const result = await apiCall('auth.php', 'POST', { action: 'login', email, password });
+            const result = await apiCall('auth/login', 'POST', { email, password });
             
             if (result.error) {
                 showMessage('authMessage', result.error, 'error');
@@ -355,7 +373,7 @@
         }
 
         async function logout() {
-            await apiCall('auth.php', 'POST', { action: 'logout' });
+            await apiCall('auth/logout', 'POST');
             authToken = null;
             currentUser = null;
             deleteCookie('fitness_token');
@@ -363,7 +381,7 @@
         }
 
         async function verifyToken() {
-            const result = await apiCall('auth.php', 'GET');
+            const result = await apiCall('auth/verify', 'GET');
             if (result.valid) {
                 currentUser = result.user;
                 showApp();
@@ -404,7 +422,7 @@
 
         // Workout functions
         async function loadWorkouts() {
-            const result = await apiCall('workouts.php');
+            const result = await apiCall('workouts');
             const list = document.getElementById('workoutList');
             const select = document.getElementById('sessionWorkout');
             
@@ -438,7 +456,7 @@
             const name = document.getElementById('workoutName').value;
             const description = document.getElementById('workoutDescription').value;
             
-            const result = await apiCall('workouts.php', 'POST', { name, description });
+            const result = await apiCall('workouts', 'POST', { name, description });
             
             if (result.error) {
                 showMessage('workoutMessage', result.error, 'error');
@@ -453,7 +471,7 @@
         async function deleteWorkout(id) {
             if (!confirm('Delete this workout and all its sessions?')) return;
             
-            const result = await apiCall('workouts.php', 'DELETE', { id });
+            const result = await apiCall(`workouts/${id}`, 'DELETE');
             showMessage('workoutMessage', result.message, result.error ? 'error' : 'success');
             loadWorkouts();
             loadSessions();
@@ -499,7 +517,7 @@
                 }
             });
             
-            const result = await apiCall('sessions.php', 'POST', { 
+            const result = await apiCall('sessions', 'POST', { 
                 workout_id: workoutId, 
                 session_date: sessionDate, 
                 notes, 
@@ -518,19 +536,30 @@
         }
 
         async function loadSessions() {
-            const result = await apiCall('sessions.php');
+            const result = await apiCall('sessions');
             const list = document.getElementById('sessionList');
             
             list.innerHTML = '';
-            
+            console.log(result);
             result.sessions.forEach(session => {
                 const li = document.createElement('li');
                 li.className = 'item';
+                
+                // Build sets details HTML
+                let setsHtml = '';
+                if (session.sets && session.sets.length > 0) {
+                    setsHtml = '<div class="sets-details">';
+                    session.sets.forEach(set => {
+                        setsHtml += `<div class="set-detail"><strong>${set.reps}</strong> reps @ <strong>${set.weight}</strong> lbs</div>`;
+                    });
+                    setsHtml += '</div>';
+                }
+                
                 li.innerHTML = `
                     <div class="item-info">
                         <strong>${session.workout_name}</strong> - ${session.session_date}
-                        <br><small>${session.total_sets} sets, ${session.total_reps} total reps</small>
                         ${session.notes ? `<br><small>${session.notes}</small>` : ''}
+                        ${setsHtml}
                     </div>
                     <div class="item-actions">
                         <button class="danger" onclick="deleteSession(${session.id})">Delete</button>
@@ -543,7 +572,7 @@
         async function deleteSession(id) {
             if (!confirm('Delete this session?')) return;
             
-            const result = await apiCall('sessions.php', 'DELETE', { id });
+            const result = await apiCall(`sessions/${id}`, 'DELETE');
             showMessage('sessionMessage', result.message, result.error ? 'error' : 'success');
             loadSessions();
         }
@@ -554,7 +583,7 @@
             const weightDate = document.getElementById('weightDate').value;
             const notes = document.getElementById('weightNotes').value;
             
-            const result = await apiCall('weight.php', 'POST', { 
+            const result = await apiCall('weight', 'POST', { 
                 weight, 
                 weight_date: weightDate, 
                 notes 
@@ -571,7 +600,7 @@
         }
 
         async function loadWeights() {
-            const result = await apiCall('weight.php');
+            const result = await apiCall('weight');
             const list = document.getElementById('weightList');
             
             list.innerHTML = '';
@@ -579,9 +608,10 @@
             result.weights.forEach(weight => {
                 const li = document.createElement('li');
                 li.className = 'item';
+                const formattedDate = new Date(weight.weight_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 li.innerHTML = `
                     <div class="item-info">
-                        <strong>${weight.weight} lbs/kg</strong> - ${weight.weight_date}
+                        <strong>${weight.weight} lbs/kg</strong> - ${formattedDate ? formattedDate : ''}
                         ${weight.notes ? `<br><small>${weight.notes}</small>` : ''}
                     </div>
                     <div class="item-actions">
@@ -595,7 +625,7 @@
         async function deleteWeight(id) {
             if (!confirm('Delete this weight entry?')) return;
             
-            const result = await apiCall('weight.php', 'DELETE', { id });
+            const result = await apiCall(`weight/${id}`, 'DELETE');
             showMessage('weightMessage', result.message, result.error ? 'error' : 'success');
             loadWeights();
         }
