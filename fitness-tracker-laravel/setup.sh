@@ -19,13 +19,14 @@ if [ ! -f .env ]; then
     else
         cat > .env << EOF
 APP_NAME=FitnessTracker
-APP_ENV=production
+APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 DB_CONNECTION=sqlite
 DB_DATABASE=/var/www/html/database/database.sqlite
 CACHE_STORE=file
 SESSION_DRIVER=file
+SANCTUM_STATEFUL_DOMAINS=localhost,localhost:8000,127.0.0.1,127.0.0.1:8000
 EOF
         echo "       Created default .env"
     fi

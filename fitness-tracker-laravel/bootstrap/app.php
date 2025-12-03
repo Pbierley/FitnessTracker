@@ -12,8 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Sanctum stateful domains for SPA authentication (optional)
-        $middleware->statefulApi();
+        // API routes don't need CSRF protection (using token auth)
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

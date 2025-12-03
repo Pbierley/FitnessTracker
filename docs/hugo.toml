@@ -1,0 +1,34 @@
+baseURL = 'https://pbierley.github.io/FitnessTracker/'
+languageCode = 'en-us'
+title = 'Fitness Tracker Documentation'
+theme = 'ananke'
+
+[params]
+  author = "Philip Bierley"
+  description = "A fitness tracking web application built with Laravel"
+  background_color_class = "bg-dark-blue"
+  featured_image = "/images/hero.jpg"
+  site_logo = ""
+
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "Home"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    identifier = "getting-started"
+    name = "Getting Started"
+    url = "/docs/getting-started/"
+    weight = 2
+  [[menu.main]]
+    identifier = "api"
+    name = "API Reference"
+    url = "/docs/api/"
+    weight = 3
+  [[menu.main]]
+    identifier = "docker"
+    name = "Docker"
+    url = "/docs/docker/"
+    weight = 4
+
