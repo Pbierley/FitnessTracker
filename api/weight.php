@@ -11,10 +11,11 @@ if (!$user) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents('php://input'), true);
 $conn = getDBConnection();
 
-// GET - List weight entries
+// GET /api/weight - List all weight entries
+// GET /api/weight?id=1 - Get single weight entry
+// GET /api/weight?start_date=2025-01-01&end_date=2025-12-31 - Filter by date range
 if ($method === 'GET') {
     $weightId = $_GET['id'] ?? null;
     $startDate = $_GET['start_date'] ?? null;
@@ -65,8 +66,9 @@ if ($method === 'GET') {
     }
 }
 
-// POST - Add weight entry
+// POST /api/weight - Add weight entry
 if ($method === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $weight = $data['weight'] ?? null;
     $weightDate = $data['weight_date'] ?? date('Y-m-d');
     $notes = $data['notes'] ?? '';
@@ -102,8 +104,9 @@ if ($method === 'POST') {
     }
 }
 
-// PUT - Update weight entry
+// PUT /api/weight - Update weight entry
 if ($method === 'PUT') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $weightId = $data['id'] ?? null;
     $weight = $data['weight'] ?? null;
     $weightDate = $data['weight_date'] ?? null;
@@ -159,9 +162,9 @@ if ($method === 'PUT') {
     }
 }
 
-// DELETE - Delete weight entry
+// DELETE /api/weight?id=1 - Delete weight entry
 if ($method === 'DELETE') {
-    $weightId = $data['id'] ?? $_GET['id'] ?? null;
+    $weightId = $_GET['id'] ?? null;
     
     if (!$weightId) {
         sendResponse(['error' => 'Weight ID is required'], 400);

@@ -1,11 +1,14 @@
 <?php
-// api/auth.php
+// api/register.php
 
 require_once '../config.php';
 
 setJSONHeaders();
 
-$method = $_SERVER['REQUEST_METHOD'];
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    sendResponse(['error' => 'Method not allowed'], 405);
+}
+
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Register new user

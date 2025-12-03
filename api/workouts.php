@@ -11,15 +11,14 @@ if (!$user) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents('php://input'), true);
 $conn = getDBConnection();
 
-// GET - List all workouts for user
+// GET /api/workouts - List all workouts
+// GET /api/workouts?id=1 - Get single workout
 if ($method === 'GET') {
     $workoutId = $_GET['id'] ?? null;
     
     if ($workoutId) {
-        // Get single workout
         $stmt = $conn->prepare("
             SELECT id, name, description, created_at, updated_at 
             FROM workouts 
@@ -34,7 +33,6 @@ if ($method === 'GET') {
         
         sendResponse($workout);
     } else {
-        // Get all workouts
         $stmt = $conn->prepare("
             SELECT id, name, description, created_at, updated_at 
             FROM workouts 
@@ -48,8 +46,9 @@ if ($method === 'GET') {
     }
 }
 
-// POST - Create new workout
+// POST /api/workouts - Create new workout
 if ($method === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $name = $data['name'] ?? '';
     $description = $data['description'] ?? '';
     
@@ -79,8 +78,9 @@ if ($method === 'POST') {
     }
 }
 
-// PUT - Update workout
+// PUT /api/workouts - Update workout
 if ($method === 'PUT') {
+    $data = json_decode(file_get_contents('php://input'), true);
     $workoutId = $data['id'] ?? null;
     $name = $data['name'] ?? '';
     $description = $data['description'] ?? '';
@@ -114,9 +114,9 @@ if ($method === 'PUT') {
     }
 }
 
-// DELETE - Delete workout
+// DELETE /api/workouts?id=1 - Delete workout
 if ($method === 'DELETE') {
-    $workoutId = $data['id'] ?? $_GET['id'] ?? null;
+    $workoutId = $_GET['id'] ?? null;
     
     if (!$workoutId) {
         sendResponse(['error' => 'Workout ID is required'], 400);
