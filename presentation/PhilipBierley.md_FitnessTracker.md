@@ -1,7 +1,7 @@
 # Fitness Tracker REST API
 ## Complete Backend Solution for Workout & Weight Management
 
-**Presented by:** John Doe  
+**Presented by:** Philip Bierley 
 **API Name:** Fitness Tracker API  
 **Total Pages:** 18  
 **Topics Covered:** ✅ PHP | ✅ MySQL | ✅ REST APIs | ✅ Security | ✅ Access Methods
